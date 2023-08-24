@@ -1,0 +1,6 @@
+venv/
+downloads/
+__pycache__/
+client_secrets.json
+upload.py-oauth2.json
+.env
