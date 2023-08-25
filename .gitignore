@@ -4,7 +4,6 @@ __pycache__/
 client_secrets.json
 upload.py-oauth2.json
 .env
-package.json
 package-lock.json
 yt-auth
 node_modules
