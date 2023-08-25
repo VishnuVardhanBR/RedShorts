@@ -1,6 +1,7 @@
 import praw
 import json
 import datetime
+import random
 from praw.exceptions import RedditAPIException
 import os
 from dotenv import load_dotenv
@@ -20,6 +21,11 @@ def save_fetched_posts(posts):
     with open(json_file, "w") as f:
         json.dump(posts, f, indent=4)
 
+def get_random_subreddit_from_file(file_path):
+    with open(file_path, "r") as f:
+        subreddits = f.read().splitlines()
+    return random.choice(subreddits)
+
 def get_top_video_post(subreddit_name):
     fetched_posts = load_fetched_posts()
 
@@ -30,9 +36,10 @@ def get_top_video_post(subreddit_name):
         read_only=os.environ.get("REDDIT_READ_ONLY") == "True"
     )
 
-
-
     try:
+        if subreddit_name == "0":
+            subreddit_name = get_random_subreddit_from_file("subreddits.txt")
+
         # Get the specified subreddit
         subreddit = reddit.subreddit(subreddit_name)
 
@@ -44,10 +51,11 @@ def get_top_video_post(subreddit_name):
 
             # Check if the post ID has already been fetched
             if not any(post_details["post_id"] == post_id for post_details in fetched_posts):
-                if post.is_video and not post.over_18:
+                if post.is_video and not post.over_18 and post.score >= 1000:
                     post_details = {
                         "post_id": post.id,
                         "title": post.title,
+                        "subreddit": post.subreddit.display_name,
                         "url": post.url,
                         "date": str(datetime.datetime.now()),
                         "upvotes": post.score
@@ -63,8 +71,3 @@ def get_top_video_post(subreddit_name):
     except RedditAPIException as e:
         print("An error occurred:", e)
         return None
-
-# Replace "your_subreddit_name" with the name of the subreddit you want to fetch posts from
-post_details = get_top_video_post("your_subreddit_name")
-if post_details:
-    print("Fetched post details:", post_details)

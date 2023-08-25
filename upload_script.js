@@ -24,4 +24,4 @@ const video = {
   publishType: privacyStatus.toUpperCase()
 };
 
-uploader.upload (credentials, [video], {headless:false}).then(console.log)
+uploader.upload (credentials, [video], {headless:true}).then(console.log)

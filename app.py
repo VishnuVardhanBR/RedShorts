@@ -1,37 +1,47 @@
+import argparse
+import time
 from get_posts import get_top_video_post
-from scrape import download_reddit_video
+from download_video import download_reddit_video
 from upload import upload_helper
+import os
+def main(subreddit_name, number_of_runs, delay_minutes):
+    for _ in range(number_of_runs):
+        post_details = get_top_video_post(subreddit_name)
+        if post_details:
+            print(f"Fetched post: \ntitle: {post_details['title']}\nsubreddit: {post_details['subreddit']}\nurl: {post_details['url']}\n")
+            video_params = {
+                'file': '',
+                'title': post_details['title'],
+                'description': '',
+                'category': '22',
+                'keywords': '',
+                'privacyStatus': 'public'
+            }
 
-subreddit_name = "HumansBeingBros"
+            downloaded_video_path = download_reddit_video(post_details['url'])
+            print(f"Download successful:\n {downloaded_video_path[1]}\n")
 
-# post_details = {
-#     "post_id": post.id,
-#     "title": post.title,
-#     "url": post.url,
-#     "date": str(datetime.datetime.now()),
-#     "upvotes": post.score
-# }
+            if downloaded_video_path[0] == 'success':
+                video_params['file'] = downloaded_video_path[1]
+                upload_helper(video_params)
+            elif downloaded_video_path[0] == 'skip':
+                print("Video length greater than 1 minute, skipped upload")
+            else:
+                print("Download error")
 
-# get top reddit post
-post_details = get_top_video_post(subreddit_name)
-if(post_details):
-    video_params = {
-        'file': '',
-        'title': post_details['title'],
-        'description': '',
-        'category': '22',
-        'keywords': '',
-        'privacyStatus': 'public'
-    }
-    print(video_params)
+            if os.path.exists(downloaded_video_path[1]):
+                os.remove(downloaded_video_path[1])
+                print("Deleted local video successfully")
 
+        print("Waiting")
+        if(_ != number_of_runs-1):
+            time.sleep(delay_minutes * 60)  # Convert delay to seconds and wait
 
-    #download video
-    downloaded_video_path = download_reddit_video(post_details['url'])
-    print(downloaded_video_path)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Reddit Video Uploader")
+    parser.add_argument("--subreddit", default= "0", help="Name of the subreddit")
+    parser.add_argument("--number", type=int, required=True, help="Number of times to run the code")
+    parser.add_argument("--delay", type=int, default=3, help="Delay between running the code in minutes")
 
-    if(downloaded_video_path != 'error'):
-        video_params['file'] = downloaded_video_path[1]
-        upload_helper(video_params)
-    else:
-        print("Download Error")
+    args = parser.parse_args()
+    main(args.subreddit, args.number, args.delay)
