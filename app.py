@@ -1,6 +1,6 @@
 from get_posts import get_top_video_post
 from scrape import download_reddit_video
-from upload import upload_video
+from upload import upload_helper
 
 subreddit_name = "HumansBeingBros"
 
@@ -16,8 +16,8 @@ subreddit_name = "HumansBeingBros"
 post_details = get_top_video_post(subreddit_name)
 if(post_details):
     video_params = {
-        'file': post_details['title'],
-        'title': '',
+        'file': '',
+        'title': post_details['title'],
         'description': '',
         'category': '22',
         'keywords': '',
@@ -32,6 +32,6 @@ if(post_details):
 
     if(downloaded_video_path != 'error'):
         video_params['file'] = downloaded_video_path[1]
-        upload_video(video_params)
+        upload_helper(video_params)
     else:
         print("Download Error")
